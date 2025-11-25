@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — ТОЛК</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .admin-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        .image-upload-zone {
+            border: 2px dashed #d1d5db;
+            transition: all 0.2s ease;
+        }
+        .image-upload-zone:hover, .image-upload-zone.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .toast {
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-xl">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white text-3xl">✦</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">Админ-панель</h1>
+                <p class="text-gray-500 mt-2">ТОЛК — управление контентом</p>
+            </div>
+            <form onsubmit="login(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Пароль</label>
+                    <input type="password" id="passwordInput" required 
+                           class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-lg"
+                           placeholder="Введите пароль">
+                </div>
+                <p id="loginError" class="text-red-500 text-sm mb-4 hidden">Неверный пароль</p>
+                <button type="submit" class="btn-primary w-full text-white py-4 rounded-xl font-semibold text-lg">
+                    Войти
+                </button>
+            </form>
+            <p class="text-center text-gray-400 text-sm mt-6">
+                <a href="index.html" class="hover:text-purple-600 transition">← Вернуться на сайт</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <span class="text-white text-xl">✦</span>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold gradient-text">ТОЛК</span>
+                        <span class="text-gray-400 ml-2">/ Админ</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="index.html" target="_blank" class="text-gray-500 hover:text-purple-600 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Открыть сайт
+                    </a>
+                    <button onclick="logout()" class="text-gray-500 hover:text-red-600 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Выйти
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
+                <button onclick="switchTab('events')" class="tab-btn active px-6 py-3 rounded-xl font-medium transition whitespace-nowrap" data-tab="events">
+                    📅 Мероприятия
+                </button>
+                <button onclick="switchTab('gallery')" class="tab-btn bg-white text-gray-600 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition whitespace-nowrap" data-tab="gallery">
+                    🖼 Галерея
+                </button>
+                <button onclick="switchTab('content')" class="tab-btn bg-white text-gray-600 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition whitespace-nowrap" data-tab="content">
+                    ✏️ Контент сайта
+                </button>
+                <button onclick="switchTab('settings')" class="tab-btn bg-white text-gray-600 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition whitespace-nowrap" data-tab="settings">
+                    ⚙️ Настройки
+                </button>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="eventsTab" class="tab-content">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Мероприятия</h2>
+                    <button onclick="openEventEditor()" class="btn-primary text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Добавить
+                    </button>
+                </div>
+                <div id="eventsList" class="space-y-4">
+                    <!-- Events will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Gallery Tab -->
+            <div id="galleryTab" class="tab-content hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Галерея</h2>
+                </div>
+                
+                <!-- Upload Zone -->
+                <div id="galleryUploadZone" class="image-upload-zone rounded-2xl p-8 text-center cursor-pointer mb-8" onclick="document.getElementById('galleryInput').click()">
+                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 font-medium">Нажмите или перетащите фотографии</p>
+                    <p class="text-gray-400 text-sm mt-1">PNG, JPG до 5MB</p>
+                </div>
+                <input type="file" id="galleryInput" class="hidden" accept="image/*" multiple onchange="handleGalleryUpload(event)">
+
+                <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Gallery will be rendered here -->
+                </div>
+                <div id="emptyGalleryAdmin" class="text-center py-16 hidden">
+                    <p class="text-gray-400">Фотографий пока нет</p>
+                </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div id="contentTab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Контент сайта</h2>
+                
+                <div class="space-y-6">
+                    <!-- Hero Section -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-sm">🏠</span>
+                            Главный экран
+                        </h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Подзаголовок</label>
+                            <textarea id="heroSubtitle" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none resize-none" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-sm">ℹ️</span>
+                            О нас
+                        </h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                            <textarea id="aboutText" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none resize-none" rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-sm">📊</span>
+                            Статистика
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Мероприятий</label>
+                                <input type="text" id="statEvents" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Участников</label>
+                                <input type="text" id="statParticipants" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Локаций</label>
+                                <input type="text" id="statLocations" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Вдохновения</label>
+                                <input type="text" id="statInspiration" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-sm">🔗</span>
+                            Соцсети
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Telegram</label>
+                                <input type="text" id="socialTelegram" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ВКонтакте</label>
+                                <input type="text" id="socialVK" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="saveContent()" class="btn-primary text-white px-8 py-4 rounded-xl font-semibold">
+                        Сохранить изменения
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Настройки</h2>
+                
+                <div class="bg-white rounded-2xl p-6 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-sm">🔐</span>
+                        Сменить пароль
+                    </h3>
+                    <div class="space-y-4 max-w-md">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Текущий пароль</label>
+                            <input type="password" id="currentPassword" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Новый пароль</label>
+                            <input type="password" id="newPassword" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Подтвердите новый пароль</label>
+                            <input type="password" id="confirmPassword" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+                        </div>
+                        <button onclick="changePassword()" class="btn-primary text-white px-6 py-3 rounded-xl font-medium">
+                            Сменить пароль
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-sm">⚠️</span>
+                        Опасная зона
+                    </h3>
+                    <p class="text-gray-500 mb-4">Сброс всех данных к начальным значениям</p>
+                    <button onclick="resetAllData()" class="bg-red-50 text-red-600 px-6 py-3 rounded-xl font-medium hover:bg-red-100 transition">
+                        Сбросить все данные
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Event Editor Modal -->
+    <div id="eventEditorModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeEventEditor()"></div>
+        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl bg-white rounded-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <h2 class="text-xl font-bold text-gray-900" id="eventEditorTitle">Новое мероприятие</h2>
+                <button onclick="closeEventEditor()" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="eventForm" class="space-y-5">
+                    <input type="hidden" id="eventId">
+                    
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Изображение</label>
+                        <div id="imageUploadZone" class="image-upload-zone rounded-2xl p-6 text-center cursor-pointer">
+                            <div id="imagePreview" class="hidden mb-4">
+                                <img id="previewImg" class="max-h-32 mx-auto rounded-xl" alt="Preview">
+                                <button type="button" onclick="clearEventImage(event)" class="mt-2 text-red-500 text-sm hover:text-red-700">Удалить изображение</button>
+                            </div>
+                            <div id="uploadPlaceholder">
+                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                    <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-500 text-sm">Нажмите или перетащите изображение</p>
+                            </div>
+                        </div>
+                        <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+                    </div>
+
+                    <!-- Emoji -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Или выберите эмодзи</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" onclick="selectEmoji('🎤')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">🎤</button>
+                            <button type="button" onclick="selectEmoji('🤝')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">🤝</button>
+                            <button type="button" onclick="selectEmoji('✍️')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">✍️</button>
+                            <button type="button" onclick="selectEmoji('⚡')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">⚡</button>
+                            <button type="button" onclick="selectEmoji('☀️')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">☀️</button>
+                            <button type="button" onclick="selectEmoji('📱')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">📱</button>
+                            <button type="button" onclick="selectEmoji('🎭')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">🎭</button>
+                            <button type="button" onclick="selectEmoji('📝')" class="emoji-btn w-11 h-11 text-xl bg-gray-100 rounded-xl hover:bg-purple-100 transition">📝</button>
+                        </div>
+                        <input type="hidden" id="eventEmoji" value="🎤">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Название *</label>
+                        <input type="text" id="eventTitle" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="Вечер открытого микрофона">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Описание *</label>
+                        <div class="mb-2 flex gap-1 flex-wrap">
+                            <button type="button" onclick="formatText('bold')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-bold transition" title="Жирный (Ctrl+B)">B</button>
+                            <button type="button" onclick="formatText('italic')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm italic transition" title="Курсив (Ctrl+I)">I</button>
+                            <button type="button" onclick="formatText('underline')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm underline transition" title="Подчёркнутый">U</button>
+                            <span class="w-px bg-gray-300 mx-1"></span>
+                            <button type="button" onclick="formatText('link')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition" title="Ссылка">🔗</button>
+                            <button type="button" onclick="formatText('list')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition" title="Список">• Список</button>
+                            <span class="w-px bg-gray-300 mx-1"></span>
+                            <button type="button" onclick="insertEmoji('🎤')" class="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">🎤</button>
+                            <button type="button" onclick="insertEmoji('✨')" class="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">✨</button>
+                            <button type="button" onclick="insertEmoji('📍')" class="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">📍</button>
+                            <button type="button" onclick="insertEmoji('🎭')" class="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">🎭</button>
+                        </div>
+                        <textarea id="eventDescription" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none resize-none font-mono text-sm" rows="5" placeholder="Опишите мероприятие...
+
+Используйте:
+**жирный текст**
+*курсив*
+__подчёркнутый__
+[текст ссылки](url)
+
+Переносы строк сохраняются автоматически"></textarea>
+                        <p class="text-xs text-gray-400 mt-1">Поддерживается: **жирный**, *курсив*, __подчёркнутый__, [ссылка](url). Переносы строк сохраняются.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Дата *</label>
+                            <input type="text" id="eventDate" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="15 февраля">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Время *</label>
+                            <input type="text" id="eventTime" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="19:00">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Категория</label>
+                        <select id="eventCategory" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-white">
+                            <option value="poetry">Поэзия</option>
+                            <option value="networking">Нетворкинг</option>
+                            <option value="workshop">Мастер-класс</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Место проведения *</label>
+                        <input type="text" id="eventLocation" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="Кофейня «Циферблат»">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Адрес *</label>
+                        <input type="text" id="eventAddress" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="ул. Покровка, 12">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Цена *</label>
+                            <input type="text" id="eventPrice" required class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="500 ₽">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Примечание</label>
+                            <input type="text" id="eventPriceNote" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="включает напитки">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Всего мест</label>
+                            <input type="number" id="eventSpots" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" value="30">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Осталось мест</label>
+                            <input type="number" id="eventSpotsLeft" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" value="30">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ссылка для записи</label>
+                        <input type="text" id="eventRegistrationLink" class="admin-input w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" placeholder="https://t.me/... или другая ссылка">
+                        <p class="text-xs text-gray-400 mt-1">Если не указана, будет использоваться основная ссылка Telegram</p>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeEventEditor()" class="flex-1 py-4 rounded-xl font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
+                            Отмена
+                        </button>
+                        <button type="submit" class="flex-1 btn-primary text-white py-4 rounded-xl font-semibold">
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Participants Modal -->
+    <div id="participantsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeParticipants()"></div>
+        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Записавшиеся</h2>
+                    <p class="text-sm text-gray-500" id="participantsEventTitle"></p>
+                </div>
+                <button onclick="closeParticipants()" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Add/Edit participant form -->
+                <div class="mb-6">
+                    <h3 class="font-medium text-gray-700 mb-3" id="participantFormTitle">Добавить участника</h3>
+                    <input type="hidden" id="editParticipantIndex" value="">
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="newParticipantName" class="admin-input w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none text-sm" placeholder="Имя *">
+                            <input type="text" id="newParticipantContact" class="admin-input w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none text-sm" placeholder="Телефон или @telegram">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="newParticipantTicketPrice" class="admin-input w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none text-sm" placeholder="Стоимость билета (₽)">
+                            <select id="newParticipantPaymentStatus" class="admin-input w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none text-sm bg-white">
+                                <option value="paid">Оплачено ✓</option>
+                                <option value="pending">Ожидает оплаты</option>
+                                <option value="free">Бесплатно</option>
+                            </select>
+                        </div>
+                        <input type="text" id="newParticipantNote" class="admin-input w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none text-sm" placeholder="Примечание (необязательно)">
+                        <div class="flex gap-2">
+                            <button onclick="saveParticipant()" class="btn-primary text-white px-6 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span id="participantSaveBtn">Добавить</span>
+                            </button>
+                            <button onclick="cancelEditParticipant()" id="cancelEditBtn" class="hidden bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-200 transition">
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary -->
+                <div id="participantsSummary" class="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hidden">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium text-green-700" id="summaryPaidCount">0</span> оплатили
+                            <span class="text-gray-400 mx-2">•</span>
+                            <span class="font-medium text-yellow-600" id="summaryPendingCount">0</span> ожидают
+                        </div>
+                        <div class="text-sm font-semibold text-green-700" id="summaryTotalAmount">0 ₽</div>
+                    </div>
+                </div>
+                
+                <!-- Participants list -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-medium text-gray-700">Список участников</h3>
+                        <span class="text-sm text-gray-400" id="participantsCount">0 человек</span>
+                    </div>
+                    <div id="participantsList" class="space-y-2">
+                        <!-- Participants will be rendered here -->
+                    </div>
+                    <div id="emptyParticipants" class="text-center py-8 hidden">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">👥</div>
+                        <p class="text-gray-400 text-sm">Пока никто не записался</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[70] space-y-2"></div>
+
+    <script>
+        // Password (в реальном проекте используйте серверную аутентификацию!)
+        const DEFAULT_PASSWORD = 'tolk2024';
+        let adminPassword = localStorage.getItem('tolkAdminPassword') || DEFAULT_PASSWORD;
+        
+        // Check if already logged in
+        const isLoggedIn = sessionStorage.getItem('tolkAdminLoggedIn') === 'true';
+        
+        if (isLoggedIn) {
+            showAdminPanel();
+        }
+
+        function login(e) {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+            
+            if (password === adminPassword) {
+                sessionStorage.setItem('tolkAdminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('passwordInput').classList.add('border-red-300');
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('tolkAdminLoggedIn');
+            location.reload();
+        }
+
+        function showAdminPanel() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            loadData();
+        }
+
+        // Data
+        let events = [];
+        let gallery = [];
+        let siteContent = {};
+        let currentEventImage = null;
+
+        function loadData() {
+            events = JSON.parse(localStorage.getItem('tolkEvents')) || [
+                {
+                    id: 1,
+                    title: "Вечер открытого микрофона",
+                    date: "15 февраля",
+                    time: "19:00",
+                    location: "Кофейня «Циферблат»",
+                    address: "ул. Покровка, 12",
+                    price: "500 ₽",
+                    priceNote: "включает напитки",
+                    category: "poetry",
+                    categoryLabel: "Поэзия",
+                    emoji: "🎤",
+                    description: "Приходи читать свои стихи или просто слушать!",
+                    spots: 25,
+                    spotsLeft: 8
+                }
+            ];
+
+            gallery = JSON.parse(localStorage.getItem('tolkGallery')) || [];
+
+            siteContent = JSON.parse(localStorage.getItem('tolkContent')) || {
+                heroSubtitle: 'Мы создаём пространство, где слова обретают силу, а люди — единомышленников',
+                aboutText: 'ТОЛК — это комьюнити для всех, кто ценит силу слова и ищет свой круг.',
+                statEvents: '50+',
+                statParticipants: '1.2K',
+                statLocations: '15',
+                statInspiration: '∞',
+                socialTelegram: 'https://t.me/tolk_community',
+                socialVK: 'https://vk.com/tolk_community'
+            };
+
+            renderEventsList();
+            renderGalleryAdmin();
+            loadContentToForm();
+        }
+
+        function saveEvents() {
+            localStorage.setItem('tolkEvents', JSON.stringify(events));
+        }
+
+        function saveGallery() {
+            localStorage.setItem('tolkGallery', JSON.stringify(gallery));
+        }
+
+        // Tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-600');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.querySelector(`[data-tab="${tab}"]`).classList.remove('bg-white', 'text-gray-600');
+            
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(`${tab}Tab`).classList.remove('hidden');
+        }
+
+        // Style active tab
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.classList.contains('active')) {
+                btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                btn.style.color = 'white';
+            }
+        });
+
+        // Events
+        function renderEventsList() {
+            const list = document.getElementById('eventsList');
+            
+            if (events.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">📅</div>
+                        <p class="text-gray-400">Мероприятий пока нет</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = events.map(event => {
+                const participants = event.participants || [];
+                return `
+                <div class="bg-white rounded-2xl p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-3xl overflow-hidden flex-shrink-0">
+                            ${event.image ? `<img src="${event.image}" class="w-full h-full object-cover">` : event.emoji}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-semibold text-gray-900 truncate">${event.title}</h4>
+                            <p class="text-sm text-gray-500">${event.date}, ${event.time} • ${event.location}</p>
+                            <p class="text-sm text-purple-600 font-medium">${event.price}</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="openParticipants(${event.id})" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:text-green-600 hover:bg-green-50 transition relative" title="Участники">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                ${participants.length > 0 ? `<span class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 text-white text-xs rounded-full flex items-center justify-center">${participants.length}</span>` : ''}
+                            </button>
+                            <button onclick="editEvent(${event.id})" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition" title="Редактировать">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteEvent(${event.id})" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 transition" title="Удалить">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    ${participants.length > 0 ? `
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <span class="font-medium text-green-600">${participants.length} записавшихся</span>
+                            <span>•</span>
+                            <span class="truncate">${participants.slice(0, 3).map(p => p.name).join(', ')}${participants.length > 3 ? '...' : ''}</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `}).join('');
+        }
+
+        function openEventEditor(eventId = null) {
+            document.getElementById('eventEditorTitle').textContent = eventId ? 'Редактировать' : 'Новое мероприятие';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = eventId || '';
+            currentEventImage = null;
+            
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+            document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-100'));
+            
+            if (eventId) {
+                const event = events.find(e => e.id === eventId);
+                if (event) {
+                    document.getElementById('eventTitle').value = event.title;
+                    document.getElementById('eventDescription').value = event.description;
+                    document.getElementById('eventDate').value = event.date;
+                    document.getElementById('eventTime').value = event.time;
+                    document.getElementById('eventCategory').value = event.category;
+                    document.getElementById('eventLocation').value = event.location;
+                    document.getElementById('eventAddress').value = event.address;
+                    document.getElementById('eventPrice').value = event.price;
+                    document.getElementById('eventPriceNote').value = event.priceNote || '';
+                    document.getElementById('eventSpots').value = event.spots;
+                    document.getElementById('eventSpotsLeft').value = event.spotsLeft;
+                    document.getElementById('eventEmoji').value = event.emoji;
+                    document.getElementById('eventRegistrationLink').value = event.registrationLink || '';
+                    
+                    if (event.image) {
+                        currentEventImage = event.image;
+                        document.getElementById('previewImg').src = event.image;
+                        document.getElementById('imagePreview').classList.remove('hidden');
+                        document.getElementById('uploadPlaceholder').classList.add('hidden');
+                    }
+                    
+                    selectEmoji(event.emoji);
+                }
+            }
+            
+            document.getElementById('eventEditorModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEventEditor() {
+            document.getElementById('eventEditorModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function editEvent(eventId) {
+            openEventEditor(eventId);
+        }
+
+        function deleteEvent(eventId) {
+            if (confirm('Удалить это мероприятие?')) {
+                events = events.filter(e => e.id !== eventId);
+                saveEvents();
+                renderEventsList();
+                showToast('Мероприятие удалено');
+            }
+        }
+
+        function selectEmoji(emoji) {
+            document.getElementById('eventEmoji').value = emoji;
+            document.querySelectorAll('.emoji-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-purple-500', 'bg-purple-100');
+                if (btn.textContent === emoji) {
+                    btn.classList.add('ring-2', 'ring-purple-500', 'bg-purple-100');
+                }
+            });
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Файл слишком большой (макс. 5MB)', 'error');
+                    return;
+                }
+                
+                // Сжимаем изображение перед сохранением
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const maxSize = 800; // Максимальный размер стороны
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Уменьшаем размер если нужно
+                        if (width > height && width > maxSize) {
+                            height = (height * maxSize) / width;
+                            width = maxSize;
+                        } else if (height > maxSize) {
+                            width = (width * maxSize) / height;
+                            height = maxSize;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Сжимаем в JPEG с качеством 0.7
+                        currentEventImage = canvas.toDataURL('image/jpeg', 0.7);
+                        document.getElementById('previewImg').src = currentEventImage;
+                        document.getElementById('imagePreview').classList.remove('hidden');
+                        document.getElementById('uploadPlaceholder').classList.add('hidden');
+                        showToast('Изображение загружено');
+                    };
+                    img.onerror = function() {
+                        showToast('Ошибка загрузки изображения', 'error');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.onerror = function() {
+                    showToast('Ошибка чтения файла', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearEventImage(e) {
+            e.stopPropagation();
+            currentEventImage = null;
+            document.getElementById('previewImg').src = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+            document.getElementById('imageInput').value = '';
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            try {
+                const categoryLabels = {
+                    'poetry': 'Поэзия',
+                    'networking': 'Нетворкинг',
+                    'workshop': 'Мастер-класс'
+                };
+                
+                const eventId = document.getElementById('eventId').value;
+                const eventData = {
+                    id: eventId ? parseInt(eventId) : Date.now(),
+                    title: document.getElementById('eventTitle').value,
+                    description: document.getElementById('eventDescription').value,
+                    date: document.getElementById('eventDate').value,
+                    time: document.getElementById('eventTime').value,
+                    category: document.getElementById('eventCategory').value,
+                    categoryLabel: categoryLabels[document.getElementById('eventCategory').value],
+                    location: document.getElementById('eventLocation').value,
+                    address: document.getElementById('eventAddress').value,
+                    price: document.getElementById('eventPrice').value,
+                    priceNote: document.getElementById('eventPriceNote').value,
+                    spots: parseInt(document.getElementById('eventSpots').value) || 30,
+                    spotsLeft: parseInt(document.getElementById('eventSpotsLeft').value) || 30,
+                    emoji: document.getElementById('eventEmoji').value || '🎤',
+                    image: currentEventImage || null,
+                    registrationLink: document.getElementById('eventRegistrationLink').value
+                };
+                
+                if (eventId) {
+                    const index = events.findIndex(e => e.id === parseInt(eventId));
+                    if (index !== -1) events[index] = eventData;
+                } else {
+                    events.push(eventData);
+                }
+                
+                // Пробуем сохранить в localStorage
+                try {
+                    localStorage.setItem('tolkEvents', JSON.stringify(events));
+                } catch (storageError) {
+                    // Если не хватает места, пробуем без изображения
+                    if (storageError.name === 'QuotaExceededError' || storageError.code === 22) {
+                        showToast('Изображение слишком большое, сохраняем без него', 'error');
+                        eventData.image = null;
+                        if (eventId) {
+                            const index = events.findIndex(e => e.id === parseInt(eventId));
+                            if (index !== -1) events[index] = eventData;
+                        }
+                        localStorage.setItem('tolkEvents', JSON.stringify(events));
+                    } else {
+                        throw storageError;
+                    }
+                }
+                
+                renderEventsList();
+                closeEventEditor();
+                showToast(eventId ? 'Мероприятие обновлено' : 'Мероприятие добавлено');
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showToast('Ошибка сохранения: ' + error.message, 'error');
+            }
+        });
+
+        // Gallery
+        function renderGalleryAdmin() {
+            const grid = document.getElementById('galleryGrid');
+            const emptyState = document.getElementById('emptyGalleryAdmin');
+            
+            if (gallery.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            grid.innerHTML = gallery.map((img, index) => `
+                <div class="relative group aspect-square rounded-xl overflow-hidden">
+                    <img src="${img}" alt="Фото ${index + 1}" class="w-full h-full object-cover">
+                    <button onclick="deleteGalleryImage(${index})" class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function handleGalleryUpload(e) {
+            const files = e.target.files;
+            Array.from(files).forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast(`${file.name} слишком большой`, 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    gallery.push(e.target.result);
+                    saveGallery();
+                    renderGalleryAdmin();
+                };
+                reader.readAsDataURL(file);
+            });
+            showToast('Фото добавлены');
+        }
+
+        function deleteGalleryImage(index) {
+            if (confirm('Удалить это фото?')) {
+                gallery.splice(index, 1);
+                saveGallery();
+                renderGalleryAdmin();
+                showToast('Фото удалено');
+            }
+        }
+
+        // Drag and drop for gallery
+        const galleryZone = document.getElementById('galleryUploadZone');
+        galleryZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            galleryZone.classList.add('dragover');
+        });
+        galleryZone.addEventListener('dragleave', () => {
+            galleryZone.classList.remove('dragover');
+        });
+        galleryZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            galleryZone.classList.remove('dragover');
+            document.getElementById('galleryInput').files = e.dataTransfer.files;
+            handleGalleryUpload({ target: { files: e.dataTransfer.files } });
+        });
+
+        // Content
+        function loadContentToForm() {
+            document.getElementById('heroSubtitle').value = siteContent.heroSubtitle;
+            document.getElementById('aboutText').value = siteContent.aboutText;
+            document.getElementById('statEvents').value = siteContent.statEvents;
+            document.getElementById('statParticipants').value = siteContent.statParticipants;
+            document.getElementById('statLocations').value = siteContent.statLocations;
+            document.getElementById('statInspiration').value = siteContent.statInspiration;
+            document.getElementById('socialTelegram').value = siteContent.socialTelegram;
+            document.getElementById('socialVK').value = siteContent.socialVK;
+        }
+
+        function saveContent() {
+            siteContent = {
+                heroSubtitle: document.getElementById('heroSubtitle').value,
+                aboutText: document.getElementById('aboutText').value,
+                statEvents: document.getElementById('statEvents').value,
+                statParticipants: document.getElementById('statParticipants').value,
+                statLocations: document.getElementById('statLocations').value,
+                statInspiration: document.getElementById('statInspiration').value,
+                socialTelegram: document.getElementById('socialTelegram').value,
+                socialVK: document.getElementById('socialVK').value
+            };
+            localStorage.setItem('tolkContent', JSON.stringify(siteContent));
+            showToast('Изменения сохранены');
+        }
+
+        // Settings
+        function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (current !== adminPassword) {
+                showToast('Неверный текущий пароль', 'error');
+                return;
+            }
+            if (newPass.length < 4) {
+                showToast('Пароль слишком короткий', 'error');
+                return;
+            }
+            if (newPass !== confirm) {
+                showToast('Пароли не совпадают', 'error');
+                return;
+            }
+            
+            adminPassword = newPass;
+            localStorage.setItem('tolkAdminPassword', adminPassword);
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            showToast('Пароль изменён');
+        }
+
+        function resetAllData() {
+            if (confirm('Вы уверены? Все данные будут удалены!')) {
+                if (confirm('Это действие нельзя отменить. Продолжить?')) {
+                    localStorage.removeItem('tolkEvents');
+                    localStorage.removeItem('tolkGallery');
+                    localStorage.removeItem('tolkContent');
+                    localStorage.removeItem('tolkAdminPassword');
+                    location.reload();
+                }
+            }
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white rounded-xl shadow-lg p-4 flex items-center gap-3 border ${type === 'success' ? 'border-green-200' : 'border-red-200'}`;
+            toast.innerHTML = `
+                <div class="w-8 h-8 rounded-full ${type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} flex items-center justify-center font-bold">
+                    ${type === 'success' ? '✓' : '✕'}
+                </div>
+                <span class="text-gray-700 font-medium">${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Participants
+        let currentParticipantsEventId = null;
+
+        function openParticipants(eventId) {
+            currentParticipantsEventId = eventId;
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            document.getElementById('participantsEventTitle').textContent = event.title;
+            clearParticipantForm();
+            
+            renderParticipantsList();
+            
+            document.getElementById('participantsModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeParticipants() {
+            document.getElementById('participantsModal').classList.add('hidden');
+            document.body.style.overflow = '';
+            currentParticipantsEventId = null;
+            clearParticipantForm();
+        }
+
+        function clearParticipantForm() {
+            document.getElementById('newParticipantName').value = '';
+            document.getElementById('newParticipantContact').value = '';
+            document.getElementById('newParticipantTicketPrice').value = '';
+            document.getElementById('newParticipantPaymentStatus').value = 'paid';
+            document.getElementById('newParticipantNote').value = '';
+            document.getElementById('editParticipantIndex').value = '';
+            document.getElementById('participantFormTitle').textContent = 'Добавить участника';
+            document.getElementById('participantSaveBtn').textContent = 'Добавить';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        function renderParticipantsList() {
+            const event = events.find(e => e.id === currentParticipantsEventId);
+            if (!event) return;
+            
+            const participants = event.participants || [];
+            const list = document.getElementById('participantsList');
+            const emptyState = document.getElementById('emptyParticipants');
+            const countEl = document.getElementById('participantsCount');
+            const summaryEl = document.getElementById('participantsSummary');
+            
+            countEl.textContent = `${participants.length} человек`;
+            
+            // Calculate summary
+            let paidCount = 0;
+            let pendingCount = 0;
+            let totalAmount = 0;
+            
+            participants.forEach(p => {
+                const price = parseFloat(p.ticketPrice) || 0;
+                if (p.paymentStatus === 'paid') {
+                    paidCount++;
+                    totalAmount += price;
+                } else if (p.paymentStatus === 'pending') {
+                    pendingCount++;
+                } else if (p.paymentStatus === 'free') {
+                    paidCount++; // Count free as "confirmed"
+                }
+            });
+            
+            if (participants.length > 0) {
+                summaryEl.classList.remove('hidden');
+                document.getElementById('summaryPaidCount').textContent = paidCount;
+                document.getElementById('summaryPendingCount').textContent = pendingCount;
+                document.getElementById('summaryTotalAmount').textContent = totalAmount.toLocaleString('ru-RU') + ' ₽';
+            } else {
+                summaryEl.classList.add('hidden');
+            }
+            
+            if (participants.length === 0) {
+                list.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            list.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            const statusLabels = {
+                'paid': { text: 'Оплачено', class: 'bg-green-100 text-green-700' },
+                'pending': { text: 'Ожидает', class: 'bg-yellow-100 text-yellow-700' },
+                'free': { text: 'Бесплатно', class: 'bg-blue-100 text-blue-700' }
+            };
+            
+            list.innerHTML = participants.map((p, index) => {
+                const status = statusLabels[p.paymentStatus] || statusLabels['pending'];
+                const priceDisplay = p.ticketPrice ? `${p.ticketPrice} ₽` : '';
+                
+                return `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
+                        ${p.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-medium text-gray-900">${p.name}</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full ${status.class}">${status.text}</span>
+                            ${priceDisplay ? `<span class="text-xs text-gray-500">${priceDisplay}</span>` : ''}
+                        </div>
+                        <div class="text-sm text-gray-500">${p.contact || 'Нет контакта'}</div>
+                        ${p.note ? `<div class="text-xs text-gray-400 mt-0.5">${p.note}</div>` : ''}
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0">
+                        <button onclick="editParticipant(${index})" class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-purple-500 hover:border-purple-200 transition" title="Редактировать">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            </svg>
+                        </button>
+                        <button onclick="removeParticipant(${index})" class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 transition" title="Удалить">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function editParticipant(index) {
+            const event = events.find(e => e.id === currentParticipantsEventId);
+            if (!event || !event.participants) return;
+            
+            const p = event.participants[index];
+            if (!p) return;
+            
+            document.getElementById('newParticipantName').value = p.name || '';
+            document.getElementById('newParticipantContact').value = p.contact || '';
+            document.getElementById('newParticipantTicketPrice').value = p.ticketPrice || '';
+            document.getElementById('newParticipantPaymentStatus').value = p.paymentStatus || 'paid';
+            document.getElementById('newParticipantNote').value = p.note || '';
+            document.getElementById('editParticipantIndex').value = index;
+            
+            document.getElementById('participantFormTitle').textContent = 'Редактировать участника';
+            document.getElementById('participantSaveBtn').textContent = 'Сохранить';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            
+            // Scroll to form
+            document.getElementById('participantFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function cancelEditParticipant() {
+            clearParticipantForm();
+        }
+
+        function saveParticipant() {
+            const name = document.getElementById('newParticipantName').value.trim();
+            const contact = document.getElementById('newParticipantContact').value.trim();
+            const ticketPrice = document.getElementById('newParticipantTicketPrice').value.trim();
+            const paymentStatus = document.getElementById('newParticipantPaymentStatus').value;
+            const note = document.getElementById('newParticipantNote').value.trim();
+            const editIndex = document.getElementById('editParticipantIndex').value;
+            
+            if (!name) {
+                showToast('Введите имя участника', 'error');
+                return;
+            }
+            
+            const event = events.find(e => e.id === currentParticipantsEventId);
+            if (!event) return;
+            
+            if (!event.participants) {
+                event.participants = [];
+            }
+            
+            const participantData = {
+                id: editIndex !== '' ? event.participants[editIndex].id : Date.now(),
+                name,
+                contact,
+                ticketPrice,
+                paymentStatus,
+                note,
+                addedAt: editIndex !== '' ? event.participants[editIndex].addedAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (editIndex !== '') {
+                // Update existing
+                event.participants[parseInt(editIndex)] = participantData;
+                showToast('Участник обновлён');
+            } else {
+                // Add new
+                event.participants.push(participantData);
+                showToast('Участник добавлен');
+            }
+            
+            saveEvents();
+            renderParticipantsList();
+            renderEventsList();
+            clearParticipantForm();
+        }
+
+        function removeParticipant(index) {
+            if (!confirm('Удалить этого участника?')) return;
+            
+            const event = events.find(e => e.id === currentParticipantsEventId);
+            if (!event || !event.participants) return;
+            
+            event.participants.splice(index, 1);
+            saveEvents();
+            renderParticipantsList();
+            renderEventsList();
+            showToast('Участник удалён');
+        }
+
+        // Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeEventEditor();
+                closeParticipants();
+            }
+        });
+
+        // Drag and drop for event image
+        const imageZone = document.getElementById('imageUploadZone');
+        imageZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            imageZone.classList.add('dragover');
+        });
+        imageZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            imageZone.classList.remove('dragover');
+        });
+        imageZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            imageZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageUpload({ target: { files: files } });
+            }
+        });
+
+        // Prevent onclick conflict
+        imageZone.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('imageInput').click();
+        });
+
+        // Text formatting functions
+        function formatText(type) {
+            const textarea = document.getElementById('eventDescription');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            
+            let replacement = '';
+            let cursorOffset = 0;
+            
+            switch(type) {
+                case 'bold':
+                    replacement = `**${selectedText || 'жирный текст'}**`;
+                    cursorOffset = selectedText ? 0 : -2;
+                    break;
+                case 'italic':
+                    replacement = `*${selectedText || 'курсив'}*`;
+                    cursorOffset = selectedText ? 0 : -1;
+                    break;
+                case 'underline':
+                    replacement = `__${selectedText || 'подчёркнутый'}__`;
+                    cursorOffset = selectedText ? 0 : -2;
+                    break;
+                case 'link':
+                    const url = prompt('Введите URL:', 'https://');
+                    if (url) {
+                        replacement = `[${selectedText || 'текст ссылки'}](${url})`;
+                    } else {
+                        return;
+                    }
+                    break;
+                case 'list':
+                    const lines = selectedText ? selectedText.split('\n') : ['пункт 1', 'пункт 2', 'пункт 3'];
+                    replacement = lines.map(line => `• ${line}`).join('\n');
+                    break;
+            }
+            
+            textarea.value = text.substring(0, start) + replacement + text.substring(end);
+            textarea.focus();
+            
+            const newCursorPos = start + replacement.length + cursorOffset;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }
+
+        function insertEmoji(emoji) {
+            const textarea = document.getElementById('eventDescription');
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            
+            textarea.value = text.substring(0, start) + emoji + text.substring(start);
+            textarea.focus();
+            textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+        }
+
+        // Keyboard shortcuts for formatting
+        document.getElementById('eventDescription')?.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'b') {
+                    e.preventDefault();
+                    formatText('bold');
+                } else if (e.key === 'i') {
+                    e.preventDefault();
+                    formatText('italic');
+                } else if (e.key === 'u') {
+                    e.preventDefault();
+                    formatText('underline');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТОЛК — Поэтическое сообщество</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+        .tag {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border: 1px solid #667eea40;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .event-image {
+            background: linear-gradient(135deg, #667eea30 0%, #764ba230 100%);
+        }
+        .event-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-item {
+            transition: all 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                    <span class="text-white text-xl">✦</span>
+                </div>
+                <span class="text-2xl font-bold gradient-text">ТОЛК</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#events" class="text-gray-600 hover:text-purple-600 transition">Афиша</a>
+                <a href="#gallery" class="text-gray-600 hover:text-purple-600 transition">Галерея</a>
+                <a href="#about" class="text-gray-600 hover:text-purple-600 transition">О нас</a>
+                <a href="#contact" class="text-gray-600 hover:text-purple-600 transition">Контакты</a>
+            </nav>
+            <a href="https://t.me/tolk_community" target="_blank" class="btn-primary text-white px-5 py-2.5 rounded-xl font-medium text-sm">
+                Telegram
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 md:py-24 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <span class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+                Сообщество для творческих людей
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+                Поэзия. Нетворкинг.<br>
+                <span class="gradient-text">Вдохновение.</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-10" id="heroSubtitleText">
+                Мы создаём пространство, где слова обретают силу, а люди — единомышленников
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#events" class="btn-primary text-white px-8 py-4 rounded-2xl font-semibold text-lg">
+                    Смотреть афишу
+                </a>
+                <a href="#about" class="bg-white text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg border border-gray-200 hover:border-purple-300 transition">
+                    Узнать больше
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events" class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Ближайшие события</h2>
+                    <p class="text-gray-500">Выбери своё и присоединяйся</p>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="filterEvents('all')" class="filter-btn active px-4 py-2 rounded-xl text-sm font-medium transition" data-filter="all">
+                        Все
+                    </button>
+                    <button onclick="filterEvents('poetry')" class="filter-btn bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-200 transition" data-filter="poetry">
+                        Поэзия
+                    </button>
+                    <button onclick="filterEvents('networking')" class="filter-btn bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-200 transition" data-filter="networking">
+                        Нетворкинг
+                    </button>
+                    <button onclick="filterEvents('workshop')" class="filter-btn bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-200 transition" data-filter="workshop">
+                        Мастер-классы
+                    </button>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div id="eventsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Events will be rendered here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="py-16 px-4 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Наши моменты</h2>
+                <p class="text-gray-500">Атмосфера наших встреч</p>
+            </div>
+            <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Gallery will be rendered here -->
+            </div>
+            <div id="emptyGallery" class="text-center py-16 hidden">
+                <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">📷</div>
+                <p class="text-gray-500">Скоро здесь появятся фотографии</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                        Больше, чем просто <span class="gradient-text">вечера поэзии</span>
+                    </h2>
+                    <p class="text-gray-600 text-lg mb-6" id="aboutTextContent">
+                        ТОЛК — это комьюнити для всех, кто ценит силу слова и ищет свой круг. 
+                        Мы проводим поэтические вечера, нетворкинги и творческие встречи в уютных локациях Москвы.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-2xl">🎤</div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Открытый микрофон</h4>
+                                <p class="text-gray-500 text-sm">Делись своим творчеством</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-2xl">🤝</div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Нетворкинг</h4>
+                                <p class="text-gray-500 text-sm">Находи единомышленников</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center text-2xl">✨</div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Атмосфера</h4>
+                                <p class="text-gray-500 text-sm">Уютные локации и классные люди</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-purple-400 to-indigo-500 rounded-3xl h-48 flex items-center justify-center text-6xl">📝</div>
+                    <div class="bg-gradient-to-br from-pink-400 to-rose-500 rounded-3xl h-48 mt-8 flex items-center justify-center text-6xl">🎭</div>
+                    <div class="bg-gradient-to-br from-indigo-400 to-purple-500 rounded-3xl h-48 flex items-center justify-center text-6xl">💫</div>
+                    <div class="bg-gradient-to-br from-violet-400 to-purple-500 rounded-3xl h-48 mt-8 flex items-center justify-center text-6xl">🌙</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-8 md:p-12">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2" id="statEventsText">50+</div>
+                        <div class="text-purple-200">Мероприятий</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2" id="statParticipantsText">1.2K</div>
+                        <div class="text-purple-200">Участников</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2" id="statLocationsText">15</div>
+                        <div class="text-purple-200">Локаций</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl md:text-5xl font-bold mb-2" id="statInspirationText">∞</div>
+                        <div class="text-purple-200">Вдохновения</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 px-4 bg-white">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Будь в курсе</h2>
+            <p class="text-gray-600 mb-8">Подписывайся на наши соцсети, чтобы не пропустить новые события</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://t.me/tolk_community" target="_blank" id="telegramLink" class="btn-primary text-white px-8 py-4 rounded-2xl font-semibold inline-flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.1.154.234.17.331.015.098.034.322.019.496z"/></svg>
+                    Telegram канал
+                </a>
+                <a href="https://vk.com/tolk_community" target="_blank" id="vkLink" class="bg-gray-100 text-gray-700 px-8 py-4 rounded-2xl font-semibold inline-flex items-center justify-center gap-2 hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.598-.189 1.365 1.26 2.179 1.818.616.422 1.084.33 1.084.33l2.178-.03s1.14-.071.599-.974c-.044-.074-.314-.667-1.617-1.886-1.364-1.277-1.181-1.07.461-3.279.999-1.345 1.399-2.166 1.274-2.518-.119-.336-.858-.247-.858-.247l-2.449.015s-.182-.025-.317.056c-.131.079-.216.262-.216.262s-.387 1.028-.903 1.903c-1.088 1.848-1.523 1.946-1.701 1.832-.414-.266-.31-1.07-.31-1.64 0-1.783.27-2.526-.527-2.718-.265-.064-.46-.106-1.138-.113-.869-.009-1.604.003-2.02.207-.277.136-.491.439-.361.456.161.021.525.098.718.361.249.339.24 1.102.24 1.102s.143 2.098-.334 2.358c-.327.18-.776-.186-1.738-1.859-.493-.857-.866-1.805-.866-1.805s-.072-.176-.2-.271c-.155-.115-.372-.151-.372-.151l-2.327.015s-.349.01-.477.161c-.114.135-.009.413-.009.413s1.816 4.246 3.876 6.386c1.889 1.963 4.032 1.834 4.032 1.834h.972z"/></svg>
+                    ВКонтакте
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-gray-100">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-gray-500 text-sm">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                    <span class="text-white text-sm">✦</span>
+                </div>
+                <span class="font-semibold text-gray-700">ТОЛК</span>
+            </div>
+            <div>© 2024 ТОЛК. Все права защищены.</div>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div id="eventModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl bg-white rounded-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div id="modalContent">
+                <!-- Modal content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="galleryModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeGalleryModal()"></div>
+        <div class="absolute inset-4 flex items-center justify-center">
+            <button onclick="closeGalleryModal()" class="absolute top-4 right-4 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-gray-700 hover:bg-white transition z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <img id="galleryModalImg" class="max-w-full max-h-full rounded-2xl shadow-2xl" src="" alt="">
+        </div>
+    </div>
+
+    <script>
+        // Load data from localStorage or use defaults
+        let events = JSON.parse(localStorage.getItem('tolkEvents')) || [
+            {
+                id: 1,
+                title: "Вечер открытого микрофона",
+                date: "15 февраля",
+                time: "19:00",
+                location: "Кофейня «Циферблат»",
+                address: "ул. Покровка, 12",
+                price: "500 ₽",
+                priceNote: "включает напитки",
+                category: "poetry",
+                categoryLabel: "Поэзия",
+                emoji: "🎤",
+                description: "Приходи читать свои стихи или просто слушать! Тёплая атмосфера, вкусный кофе и люди, которые понимают.",
+                spots: 25,
+                spotsLeft: 8
+            },
+            {
+                id: 2,
+                title: "Нетворкинг «Слова и связи»",
+                date: "18 февраля",
+                time: "18:30",
+                location: "Коворкинг «Рабочая станция»",
+                address: "Тверская, 24",
+                price: "800 ₽",
+                priceNote: "нетворкинг + фуршет",
+                category: "networking",
+                categoryLabel: "Нетворкинг",
+                emoji: "🤝",
+                description: "Знакомься с творческими людьми в формате быстрых свиданий! Редакторы, поэты, иллюстраторы, блогеры.",
+                spots: 40,
+                spotsLeft: 15
+            },
+            {
+                id: 3,
+                title: "Мастер-класс по сторителлингу",
+                date: "22 февраля",
+                time: "12:00",
+                location: "Библиотека им. Достоевского",
+                address: "Чистопрудный бульвар, 23",
+                price: "1200 ₽",
+                priceNote: "материалы включены",
+                category: "workshop",
+                categoryLabel: "Мастер-класс",
+                emoji: "✍️",
+                description: "Научись рассказывать истории, которые захватывают. Разберём структуру и управление вниманием.",
+                spots: 15,
+                spotsLeft: 3
+            }
+        ];
+
+        let gallery = JSON.parse(localStorage.getItem('tolkGallery')) || [];
+
+        let siteContent = JSON.parse(localStorage.getItem('tolkContent')) || {
+            heroSubtitle: 'Мы создаём пространство, где слова обретают силу, а люди — единомышленников',
+            aboutText: 'ТОЛК — это комьюнити для всех, кто ценит силу слова и ищет свой круг. Мы проводим поэтические вечера, нетворкинги и творческие встречи в уютных локациях Москвы.',
+            statEvents: '50+',
+            statParticipants: '1.2K',
+            statLocations: '15',
+            statInspiration: '∞',
+            socialTelegram: 'https://t.me/tolk_community',
+            socialVK: 'https://vk.com/tolk_community'
+        };
+
+        let currentFilter = 'all';
+
+        function renderEvents() {
+            const grid = document.getElementById('eventsGrid');
+            const filteredEvents = currentFilter === 'all' 
+                ? events 
+                : events.filter(e => e.category === currentFilter);
+            
+            if (filteredEvents.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">📅</div>
+                        <p class="text-gray-500">Мероприятий пока нет</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = filteredEvents.map(event => `
+                <div class="bg-white rounded-2xl overflow-hidden card-hover cursor-pointer border border-gray-100" onclick="openModal(${event.id})">
+                    <div class="event-image h-40 flex items-center justify-center text-6xl overflow-hidden">
+                        ${event.image ? `<img src="${event.image}" alt="${event.title}">` : event.emoji}
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="tag px-3 py-1 rounded-full text-xs font-medium text-purple-700">
+                                ${event.categoryLabel}
+                            </span>
+                            <span class="text-gray-400 text-xs">${event.spotsLeft} мест</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">${event.title}</h3>
+                        <div class="space-y-2 text-sm text-gray-500">
+                            <div class="flex items-center gap-2">
+                                <span>📅</span>
+                                <span>${event.date}, ${event.time}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span>📍</span>
+                                <span>${event.location}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                            <div class="font-bold text-purple-600">${event.price}</div>
+                            <button class="text-sm text-purple-600 font-medium hover:text-purple-800 transition flex items-center gap-1">
+                                Подробнее
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const emptyState = document.getElementById('emptyGallery');
+            
+            if (gallery.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            grid.innerHTML = gallery.map((img, index) => `
+                <div class="gallery-item aspect-square rounded-2xl overflow-hidden cursor-pointer" onclick="openGalleryModal('${img}')">
+                    <img src="${img}" alt="Фото ${index + 1}" class="w-full h-full object-cover">
+                </div>
+            `).join('');
+        }
+
+        function openGalleryModal(src) {
+            document.getElementById('galleryModalImg').src = src;
+            document.getElementById('galleryModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('galleryModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function filterEvents(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-gray-100', 'text-gray-600');
+            });
+            document.querySelector(`[data-filter="${category}"]`).classList.add('active');
+            document.querySelector(`[data-filter="${category}"]`).classList.remove('bg-gray-100', 'text-gray-600');
+            renderEvents();
+        }
+
+        function openModal(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+
+            const spotsPercent = ((event.spots - event.spotsLeft) / event.spots) * 100;
+
+            document.getElementById('modalContent').innerHTML = `
+                <div class="event-image h-48 flex items-center justify-center text-8xl relative overflow-hidden">
+                    ${event.image ? `<img src="${event.image}" alt="${event.title}">` : event.emoji}
+                    <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="tag px-3 py-1 rounded-full text-sm font-medium text-purple-700">
+                            ${event.categoryLabel}
+                        </span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">${event.title}</h2>
+                    <div class="text-gray-600 mb-6 whitespace-pre-line">${formatDescription(event.description)}</div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-gray-400 text-sm mb-1">Дата и время</div>
+                            <div class="font-semibold text-gray-900">${event.date}, ${event.time}</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-gray-400 text-sm mb-1">Стоимость</div>
+                            <div class="font-semibold text-gray-900">${event.price}</div>
+                            <div class="text-xs text-gray-500">${event.priceNote || ''}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                        <div class="text-gray-400 text-sm mb-1">Место проведения</div>
+                        <div class="font-semibold text-gray-900">${event.location}</div>
+                        <div class="text-gray-500 text-sm">${event.address}</div>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-500">Занято мест</span>
+                            <span class="font-medium text-gray-700">${event.spots - event.spotsLeft} из ${event.spots}</span>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" style="width: ${spotsPercent}%"></div>
+                        </div>
+                        <div class="text-right text-sm text-purple-600 font-medium mt-1">Осталось ${event.spotsLeft} мест</div>
+                    </div>
+
+                    <a href="${event.registrationLink || siteContent.socialTelegram}" target="_blank" class="btn-primary w-full text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2">
+                        Записаться
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                </div>
+            `;
+
+            document.getElementById('eventModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function applyContent() {
+            document.getElementById('heroSubtitleText').textContent = siteContent.heroSubtitle;
+            document.getElementById('aboutTextContent').textContent = siteContent.aboutText;
+            document.getElementById('statEventsText').textContent = siteContent.statEvents;
+            document.getElementById('statParticipantsText').textContent = siteContent.statParticipants;
+            document.getElementById('statLocationsText').textContent = siteContent.statLocations;
+            document.getElementById('statInspirationText').textContent = siteContent.statInspiration;
+            
+            document.getElementById('telegramLink').href = siteContent.socialTelegram;
+            document.getElementById('vkLink').href = siteContent.socialVK;
+            
+            document.querySelectorAll('a[href*="t.me"]').forEach(link => {
+                link.href = siteContent.socialTelegram;
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeGalleryModal();
+            }
+        });
+
+        // Format description with markdown-like syntax
+        function formatDescription(text) {
+            if (!text) return '';
+            
+            // Escape HTML first
+            let formatted = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            // Bold: **text**
+            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            
+            // Italic: *text*
+            formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
+            // Underline: __text__
+            formatted = formatted.replace(/__(.+?)__/g, '<u>$1</u>');
+            
+            // Links: [text](url)
+            formatted = formatted.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" class="text-purple-600 hover:text-purple-800 underline">$1</a>');
+            
+            return formatted;
+        }
+
+        // Initial render
+        renderEvents();
+        renderGallery();
+        applyContent();
+    </script>
+</body>
+</html>
